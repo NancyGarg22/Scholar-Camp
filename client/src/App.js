@@ -14,6 +14,12 @@ import EditListing from "./pages/EditListing";
 import NotFound from "./pages/NotFound";
 import ListingDetails from "./pages/ListingDetails";
 import MyBookmarks from "./pages/MyBookmarks"; // ✅ correct import
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import ChangePassword from "./pages/ChangePassword";
+import AdminDashboard from "./pages/AdminDashboard";
+import Profile from "./pages/Profile";
+
 
 function App() {
   return (
@@ -25,7 +31,11 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/listing/:id" element={<ListingDetails />} />
-
+<Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password/:token" element={<ResetPassword />} />
+<Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
+<Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+<Route path="*" element={<NotFound />} />
         <Route
           path="/bookmarks"
           element={
@@ -58,7 +68,25 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+  path="/profile"
+  element={
+    <PrivateRoute>
+      <Profile />
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/admin"
+  element={
+    <PrivateRoute requiredRole="admin">
+      <AdminDashboard />
+    </PrivateRoute>
+  }
+/>
+
         <Route path="*" element={<NotFound />} />
+        
       </Routes>
 
       <ToastContainer position="top-center" autoClose={2000} />

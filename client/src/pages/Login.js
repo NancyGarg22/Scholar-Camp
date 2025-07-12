@@ -1,30 +1,30 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Form, Button, Container, Card } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // 👈
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const { login } = useAuth();
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await axios.post("http://localhost:5000/api/auth/login", formData);
-    login(res.data.user, res.data.token); // 👈 use context
-    alert("Login successful!");
-    navigate("/");
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.message || "Login failed");
-  }
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+      login(res.data.user, res.data.token);
+      alert("Login successful!");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Login failed");
+    }
+  };
 
   return (
     <Container className="d-flex justify-content-center align-items-center py-5">
@@ -33,13 +33,33 @@ const handleSubmit = async (e) => {
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
-            <Form.Control name="email" type="email" onChange={handleChange} required />
+            <Form.Control
+              name="email"
+              type="email"
+              onChange={handleChange}
+              required
+            />
           </Form.Group>
-          <Form.Group className="mb-3">
+
+          <Form.Group className="mb-1">
             <Form.Label>Password</Form.Label>
-            <Form.Control name="password" type="password" onChange={handleChange} required />
+            <Form.Control
+              name="password"
+              type="password"
+              onChange={handleChange}
+              required
+            />
           </Form.Group>
-          <Button type="submit" variant="dark" className="w-100">Login</Button>
+
+          <div className="text-end mb-3">
+            <Link to="/forgot-password" className="text-decoration-none">
+              Forgot your password?
+            </Link>
+          </div>
+
+          <Button type="submit" variant="dark" className="w-100">
+            Login
+          </Button>
         </Form>
       </Card>
     </Container>
