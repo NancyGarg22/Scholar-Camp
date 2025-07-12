@@ -5,7 +5,8 @@ const User = require("../models/User");
 const crypto = require("crypto");
 const router = express.Router();
 const verifyAuth = require("../middleware/verifyAuth");
-
+const transporter = require("../utils/mailer");
+const nodemailer = require("nodemailer");
 // Register
 router.post("/register", async (req, res) => {
   try {
@@ -40,44 +41,74 @@ router.post("/login", async (req, res) => {
       expiresIn: "7d",
     });
 
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+   res.json({
+  token,
+  user: {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role, // ✅ Add this line
+  },
+});
+
   } catch (err) {
     console.error("Login error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
 
+
+
+
+// POST: Forgot Password
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
-
   try {
     const user = await User.findOne({ email });
+
     if (!user)
-      return res.status(404).json({ message: "User not found with this email" });
+      return res.status(404).json({ message: "User not found with that email" });
 
-    // Generate token
+    // Generate reset token
     const token = crypto.randomBytes(20).toString("hex");
+    const expire = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-    user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetToken = token;
+    user.resetTokenExpire = expire;
     await user.save();
 
-    // Send email here, or for now just log it:
-    console.log(`Password reset link: http://localhost:3000/reset-password/${token}`);
+    // Email setup
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-    res.json({ message: "Password reset link sent (check console)" });
+    const resetUrl = `http://localhost:3000/reset-password/${token}`;
+    const mailOptions = {
+      from: `ScholarCamp <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "Reset Your Password",
+      html: `
+        <p>Hello ${user.name || "user"},</p>
+        <p>You requested a password reset. Click below to reset:</p>
+        <a href="${resetUrl}" style="color: blue;">Reset Password</a>
+        <p>This link will expire in 15 minutes.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: "Reset email sent. Check your inbox." });
   } catch (err) {
-    console.error("Forgot password error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error sending reset email", err);
+    res.status(500).json({ message: "Something went wrong" });
   }
 });
+
+
 
 router.post("/reset-password/:token", async (req, res) => {
   const { token } = req.params;
@@ -105,26 +136,7 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
-// ✅ Reset Password using token
-router.post("/reset-password/:token", async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
-    await user.save();
-
-    res.json({ message: "Password reset successful" });
-  } catch (err) {
-    console.error("Reset error:", err.message);
-    res.status(400).json({ message: "Invalid or expired token" });
-  }
-});
 
 // ✅ PUT: Update profile
 router.put("/update", verifyAuth, async (req, res) => {

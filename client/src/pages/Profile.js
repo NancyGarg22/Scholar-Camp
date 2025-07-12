@@ -13,20 +13,21 @@ const Profile = () => {
   });
 
   const [loading, setLoading] = useState(true);
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    await axios.put(
-      "http://localhost:5000/api/user/update",
-      formData,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    alert("Profile updated!");
-  } catch (err) {
-    console.error("Update failed", err);
-    alert("Update failed");
-  }
-};
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(
+        "http://localhost:5000/api/auth/update",
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Profile updated!");
+    } catch (err) {
+      console.error("Update failed", err);
+      alert("Update failed");
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -58,39 +59,35 @@ const handleSubmit = async (e) => {
       <Card className="p-4 shadow-sm">
         <h3 className="mb-3">👤 My Profile</h3>
 
-        <Form>
+        {/* ✅ ONE SINGLE FORM */}
+        <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Full Name</Form.Label>
             <Form.Control
-  name="name"
-  value={formData.name}
-  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-/>
-
+              name="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
-           <Form.Control
-  name="email"
-  type="email"
-  value={formData.email}
-  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-/>
-
+            <Form.Control
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+            />
           </Form.Group>
 
-          <Button variant="outline-dark" disabled>
-            Edit Profile (Coming Soon)
+          {/* ✅ Update Button */}
+          <Button type="submit" variant="dark" className="mt-2">
+            Save Changes
           </Button>
-          <Button
-  variant="dark"
-  className="mt-2"
-  onClick={handleSubmit}
->
-  Save Changes
-</Button>
-
         </Form>
       </Card>
     </Container>

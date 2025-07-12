@@ -1,6 +1,19 @@
 const express = require("express");
 const router = express.Router();
 const verifyAuth = require("../middleware/verifyAuth");
+const isAdmin = require("../middleware/isAdmin");
+const User = require("../models/User");
+
+router.get("/all", verifyAuth, isAdmin, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (err) {
+    console.error("Error fetching users", err);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
 
 // Get current user info
 router.get("/me", verifyAuth, async (req, res) => {
@@ -27,19 +40,18 @@ router.put("/change-password", verifyAuth, async (req, res) => {
   }
 });
 
-// GET all users (admin only)
-router.get("/all", verifyAuth, async (req, res) => {
-  const currentUser = await User.findById(req.user);
-  if (currentUser.role !== "admin") {
-    return res.status(403).json({ message: "Access denied" });
-  }
 
+
+
+// DELETE user by ID (admin-only)
+router.delete("/:id", verifyAuth, async (req, res) => {
   try {
-    const users = await User.find().select("-password");
-    res.json(users);
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "User deleted" });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching users" });
+    res.status(500).json({ message: "Failed to delete user" });
   }
 });
+
 
 module.exports = router;

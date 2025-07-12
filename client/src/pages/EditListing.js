@@ -49,7 +49,8 @@ const EditListing = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Listing updated");
-      navigate("/myuploads");
+      navigate("/my-uploads");
+
     } catch (err) {
       toast.error("Update failed");
     }

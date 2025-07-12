@@ -19,6 +19,8 @@ import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import Unauthorized from "./pages/Unauthorized";
+
 
 
 function App() {
@@ -34,8 +36,10 @@ function App() {
 <Route path="/forgot-password" element={<ForgotPassword />} />
 <Route path="/reset-password/:token" element={<ResetPassword />} />
 <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
-<Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+
 <Route path="*" element={<NotFound />} />
+<Route path="/unauthorized" element={<Unauthorized />} />
+
         <Route
           path="/bookmarks"
           element={
@@ -78,6 +82,16 @@ function App() {
 />
 <Route
   path="/admin"
+  element={
+    <PrivateRoute requiredRole="admin">
+      <AdminDashboard />
+    </PrivateRoute>
+  }
+/>
+
+
+<Route
+  path="/admin-dashboard"
   element={
     <PrivateRoute requiredRole="admin">
       <AdminDashboard />

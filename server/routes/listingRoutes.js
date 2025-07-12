@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const { Readable } = require("stream");
+const mongoose = require("mongoose");
 const verifyAuth = require("../middleware/verifyAuth");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
 const upload = require("../middleware/upload");
 const cloudinary = require("../utils/cloudinary");
+const isAdmin = require("../middleware/isAdmin");
 
-// ✅ Upload a new listing
+// Upload a new listing
 router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
   try {
     const { title, subject, description } = req.body;
@@ -43,7 +45,7 @@ router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
   }
 });
 
-// ✅ Get all listings
+// Get all listings
 router.get("/all", async (req, res) => {
   try {
     const listings = await Listing.find().sort({ createdAt: -1 });
@@ -54,9 +56,12 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// ✅ Get my uploads
+// Get my uploads
 router.get("/my", verifyAuth, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.user)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
     const listings = await Listing.find({ owner: req.user }).sort({ createdAt: -1 });
     res.json(listings);
   } catch (err) {
@@ -65,11 +70,20 @@ router.get("/my", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ Toggle bookmark
+// Toggle bookmark
 router.patch("/:id/bookmark", verifyAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.user);
     const listingId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(req.user)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ message: "Invalid listing ID" });
+    }
+
+    const user = await User.findById(req.user);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const alreadyBookmarked = user.bookmarks.includes(listingId);
     if (alreadyBookmarked) {
@@ -86,10 +100,16 @@ router.patch("/:id/bookmark", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ Get bookmarked listings
+// Get bookmarked listings
 router.get("/bookmarks/my", verifyAuth, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.user)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
     const user = await User.findById(req.user).populate("bookmarks");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     res.json(user.bookmarks);
   } catch (err) {
     console.error("❌ Fetch bookmarks error:", err);
@@ -97,10 +117,16 @@ router.get("/bookmarks/my", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ Delete a listing
+// Delete a listing
 router.delete("/:id", verifyAuth, async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listingId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ message: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ message: "Not found" });
 
     if (listing.owner.toString() !== req.user)
@@ -114,11 +140,18 @@ router.delete("/:id", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ Get listing by ID
+// Get listing by ID
 router.get("/:id", async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listingId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ message: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
+
     res.json(listing);
   } catch (err) {
     console.error("❌ Get listing by ID error:", err);
@@ -126,10 +159,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ Update a listing
+// Update a listing
 router.put("/:id", verifyAuth, async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listingId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ message: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
     if (listing.owner.toString() !== req.user)
@@ -148,10 +187,16 @@ router.put("/:id", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ Increment download count
+// Increment download count
 router.patch("/:id/download", async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listingId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ message: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(listingId);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
     listing.downloadCount = (listing.downloadCount || 0) + 1;
@@ -160,6 +205,16 @@ router.patch("/:id/download", async (req, res) => {
   } catch (err) {
     console.error("❌ Download count update error:", err);
     res.status(500).json({ message: "Error updating download count" });
+  }
+});
+
+router.get("/admin/all", verifyAuth, isAdmin, async (req, res) => {
+  try {
+    const listings = await Listing.find().sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (err) {
+    console.error("❌ Admin fetch listings error:", err);
+    res.status(500).json({ message: "Error fetching listings" });
   }
 });
 

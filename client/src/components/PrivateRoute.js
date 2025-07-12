@@ -13,11 +13,13 @@ const PrivateRoute = ({ children, requiredRole }) => {
     return <Navigate to="/login" />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
+  if (requiredRole && user?.role !== requiredRole) {
+    toast.error("Access denied!");
     return <Navigate to="/unauthorized" />;
   }
 
   return children;
 };
+
 
 export default PrivateRoute;
