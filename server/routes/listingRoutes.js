@@ -1,221 +1,186 @@
 const express = require("express");
 const router = express.Router();
-const { Readable } = require("stream");
-const mongoose = require("mongoose");
+const multer = require("multer");
 const verifyAuth = require("../middleware/verifyAuth");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
-const upload = require("../middleware/upload");
-const cloudinary = require("../utils/cloudinary");
-const isAdmin = require("../middleware/isAdmin");
+const supabase = require("../utils/supabaseClient");
 
-// Upload a new listing
+const upload = multer({ storage: multer.memoryStorage() });
+const BUCKET_NAME = "scholarcamp-notes"; // ✅ Your bucket name
+
+// ✅ POST: Upload file to Supabase Storage
 router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
   try {
     const { title, subject, description } = req.body;
+    const file = req.file;
 
-    if (!req.file || !req.file.buffer)
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!file) return res.status(400).json({ message: "No file provided" });
 
-    const stream = cloudinary.uploader.upload_stream(
-      { folder: "scholarcamp_notes", resource_type: "auto" },
-      async (error, result) => {
-        if (error) {
-          console.error("❌ Cloudinary error:", error);
-          return res.status(500).json({ message: "Upload failed" });
-        }
+    const fileName = `${Date.now()}-${file.originalname.replace(/\s/g, "_")}`;
 
-        const listing = new Listing({
-          title,
-          subject,
-          description,
-          fileUrl: result.secure_url,
-          owner: req.user,
-        });
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
 
-        await listing.save();
-        res.status(201).json({ message: "Listing uploaded", listing });
-      }
-    );
+    if (uploadError) throw uploadError;
 
-    Readable.from(req.file.buffer).pipe(stream);
-  } catch (err) {
-    console.error("❌ Upload error:", err);
-    res.status(500).json({ message: "Server error" });
+    const { data: publicUrlData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(fileName);
+
+    const fileUrl = publicUrlData?.publicUrl;
+
+    const newListing = new Listing({
+      title,
+      subject,
+      description,
+      fileUrl,
+      uploadedBy: req.user.id,
+    });
+
+    await newListing.save();
+    res.status(201).json(newListing);
+  } catch (error) {
+    console.error("❌ Upload error:", error.message);
+    res.status(500).json({ message: "Upload failed" });
   }
 });
 
-// Get all listings
+// ✅ GET: All Public Listings
 router.get("/all", async (req, res) => {
   try {
     const listings = await Listing.find().sort({ createdAt: -1 });
     res.json(listings);
   } catch (err) {
-    console.error("❌ Fetch listings error:", err);
-    res.status(500).json({ message: "Error fetching listings" });
+    console.error("❌ Error fetching listings:", err);
+    res.status(500).json({ message: "Server error fetching listings" });
   }
 });
 
-// Get my uploads
-router.get("/my", verifyAuth, async (req, res) => {
+// ✅ GET: My Uploads
+// ✅ GET: My Uploads
+router.get("/my-uploads", verifyAuth, async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.user)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-    const listings = await Listing.find({ owner: req.user }).sort({ createdAt: -1 });
+    console.log("👤 User ID from token:", req.user.id);
+    const listings = await Listing.find({ uploadedBy: req.user.id }); // ✅ fix here
     res.json(listings);
   } catch (err) {
-    console.error("❌ My uploads fetch error:", err);
-    res.status(500).json({ message: "Error fetching your uploads" });
+    console.error("❌ Error fetching uploads:", err);
+    res.status(500).json({ message: "Server error fetching uploads" });
   }
 });
 
-// Toggle bookmark
-router.patch("/:id/bookmark", verifyAuth, async (req, res) => {
-  try {
-    const listingId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(req.user)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-    if (!mongoose.Types.ObjectId.isValid(listingId)) {
-      return res.status(400).json({ message: "Invalid listing ID" });
-    }
-
-    const user = await User.findById(req.user);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const alreadyBookmarked = user.bookmarks.includes(listingId);
-    if (alreadyBookmarked) {
-      user.bookmarks = user.bookmarks.filter(id => id.toString() !== listingId);
-    } else {
-      user.bookmarks.push(listingId);
-    }
-
-    await user.save();
-    res.json({ bookmarked: !alreadyBookmarked });
-  } catch (err) {
-    console.error("❌ Bookmark toggle error:", err);
-    res.status(500).json({ message: "Bookmark toggle failed" });
-  }
-});
-
-// Get bookmarked listings
-router.get("/bookmarks/my", verifyAuth, async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.user)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
-    const user = await User.findById(req.user).populate("bookmarks");
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    res.json(user.bookmarks);
-  } catch (err) {
-    console.error("❌ Fetch bookmarks error:", err);
-    res.status(500).json({ message: "Error fetching bookmarks" });
-  }
-});
-
-// Delete a listing
-router.delete("/:id", verifyAuth, async (req, res) => {
-  try {
-    const listingId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(listingId)) {
-      return res.status(400).json({ message: "Invalid listing ID" });
-    }
-
-    const listing = await Listing.findById(listingId);
-    if (!listing) return res.status(404).json({ message: "Not found" });
-
-    if (listing.owner.toString() !== req.user)
-      return res.status(403).json({ message: "Unauthorized" });
-
-    await listing.deleteOne();
-    res.json({ message: "Deleted successfully" });
-  } catch (err) {
-    console.error("❌ Delete error:", err);
-    res.status(500).json({ message: "Error deleting listing" });
-  }
-});
-
-// Get listing by ID
+// ✅ GET: Single Listing by ID
 router.get("/:id", async (req, res) => {
   try {
-    const listingId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(listingId)) {
-      return res.status(400).json({ message: "Invalid listing ID" });
-    }
-
-    const listing = await Listing.findById(listingId);
+    const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
-
     res.json(listing);
   } catch (err) {
-    console.error("❌ Get listing by ID error:", err);
-    res.status(500).json({ message: "Error fetching listing" });
+    console.error("❌ Error fetching single listing:", err);
+    res.status(500).json({ message: "Failed to fetch listing" });
   }
 });
 
-// Update a listing
+
+
+
+
+// ✅ PUT: Update a Listing
 router.put("/:id", verifyAuth, async (req, res) => {
   try {
-    const listingId = req.params.id;
+    const { title, subject, description } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(listingId)) {
-      return res.status(400).json({ message: "Invalid listing ID" });
-    }
-
-    const listing = await Listing.findById(listingId);
+    const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
-    if (listing.owner.toString() !== req.user)
-      return res.status(403).json({ message: "Unauthorized" });
+    if (listing.uploadedBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized to update this listing" });
+    }
 
-    const { title, subject, description } = req.body;
-    listing.title = title;
-    listing.subject = subject;
-    listing.description = description;
+    listing.title = title || listing.title;
+    listing.subject = subject || listing.subject;
+    listing.description = description || listing.description;
 
     await listing.save();
     res.json({ message: "Listing updated", listing });
   } catch (err) {
-    console.error("❌ Update listing error:", err);
-    res.status(500).json({ message: "Error updating listing" });
+    console.error("❌ Error updating listing:", err);
+    res.status(500).json({ message: "Failed to update listing" });
   }
 });
 
-// Increment download count
-router.patch("/:id/download", async (req, res) => {
+// ✅ DELETE: Delete a Listing
+router.delete("/:id", verifyAuth, async (req, res) => {
   try {
-    const listingId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(listingId)) {
-      return res.status(400).json({ message: "Invalid listing ID" });
-    }
-
-    const listing = await Listing.findById(listingId);
+    const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
-    listing.downloadCount = (listing.downloadCount || 0) + 1;
-    await listing.save();
-    res.json({ message: "Download count updated" });
+    if (listing.uploadedBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to delete this listing" });
+    }
+
+    await listing.deleteOne();
+    res.json({ message: "Listing deleted successfully" });
   } catch (err) {
-    console.error("❌ Download count update error:", err);
-    res.status(500).json({ message: "Error updating download count" });
+    console.error("❌ Error deleting listing:", err.message);
+    res.status(500).json({ message: "Failed to delete listing" });
   }
 });
 
-router.get("/admin/all", verifyAuth, isAdmin, async (req, res) => {
+// ✅ GET: Search Listings
+router.get("/search/query", async (req, res) => {
   try {
-    const listings = await Listing.find().sort({ createdAt: -1 });
+    const q = req.query.q || "";
+    const listings = await Listing.find({
+      $or: [
+        { title: { $regex: q, $options: "i" } },
+        { subject: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+      ],
+    }).sort({ createdAt: -1 });
+
     res.json(listings);
   } catch (err) {
-    console.error("❌ Admin fetch listings error:", err);
-    res.status(500).json({ message: "Error fetching listings" });
+    console.error("❌ Search error:", err);
+    res.status(500).json({ message: "Failed to search listings" });
   }
 });
+// ✅ GET: My Bookmarks
+router.get("/bookmarks/my", verifyAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate("bookmarks");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user.bookmarks);
+  } catch (err) {
+    console.error("❌ Error fetching bookmarks:", err);
+    res.status(500).json({ message: "Failed to fetch bookmarks" });
+  }
+});
+
+// ✅ POST: Bookmark a Listing
+router.post("/bookmark/:id", verifyAuth, async (req, res) => {
+  try {
+    const listingId = req.params.id;
+    const user = await User.findById(req.user.id);
+
+    if (!user.bookmarks.includes(listingId)) {
+      user.bookmarks.push(listingId);
+      await user.save();
+    }
+
+    res.json({ message: "Bookmarked successfully" });
+  } catch (err) {
+    console.error("❌ Bookmark error:", err);
+    res.status(500).json({ message: "Failed to bookmark" });
+  }
+});
+
+
 
 module.exports = router;

@@ -53,5 +53,19 @@ router.delete("/:id", verifyAuth, async (req, res) => {
   }
 });
 
+router.post("/bulk-delete", verifyAuth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids)) return res.status(400).json({ error: "Invalid IDs" });
+
+    await User.deleteMany({ _id: { $in: ids } });
+
+    res.json({ message: "Users deleted" });
+  } catch (err) {
+    console.error("Bulk user delete error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 module.exports = router;

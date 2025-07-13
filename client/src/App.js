@@ -1,44 +1,53 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
 import Upload from "./pages/Upload";
 import Listings from "./pages/Listings";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import MyUploads from "./pages/MyUploads";
 import EditListing from "./pages/EditListing";
 import NotFound from "./pages/NotFound";
 import ListingDetails from "./pages/ListingDetails";
-import MyBookmarks from "./pages/MyBookmarks"; // ✅ correct import
+import MyBookmarks from "./pages/MyBookmarks";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import Unauthorized from "./pages/Unauthorized";
-
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Listings />} /> {/* ✅ Default is Browse */}
         <Route path="/listings" element={<Listings />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/listing/:id" element={<ListingDetails />} />
-<Route path="/forgot-password" element={<ForgotPassword />} />
-<Route path="/reset-password/:token" element={<ResetPassword />} />
-<Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
-
-<Route path="*" element={<NotFound />} />
-<Route path="/unauthorized" element={<Unauthorized />} />
+        <Route
+          path="/listing/:id"
+          element={
+            <PrivateRoute>
+              <ListingDetails />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route
+          path="/change-password"
+          element={
+            <PrivateRoute>
+              <ChangePassword />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         <Route
           path="/bookmarks"
@@ -73,34 +82,23 @@ function App() {
           }
         />
         <Route
-  path="/profile"
-  element={
-    <PrivateRoute>
-      <Profile />
-    </PrivateRoute>
-  }
-/>
-<Route
-  path="/admin"
-  element={
-    <PrivateRoute requiredRole="admin">
-      <AdminDashboard />
-    </PrivateRoute>
-  }
-/>
-
-
-<Route
-  path="/admin-dashboard"
-  element={
-    <PrivateRoute requiredRole="admin">
-      <AdminDashboard />
-    </PrivateRoute>
-  }
-/>
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin-dashboard"
+          element={
+            <PrivateRoute requiredRole="admin">
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
 
         <Route path="*" element={<NotFound />} />
-        
       </Routes>
 
       <ToastContainer position="top-center" autoClose={2000} />

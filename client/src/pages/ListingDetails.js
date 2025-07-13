@@ -17,7 +17,7 @@ const ListingDetails = () => {
         const res = await axios.get(`http://localhost:5000/api/listings/${id}`);
         setListing(res.data);
       } catch (err) {
-        console.error("Fetch listing error:", err);
+        console.error("❌ Fetch listing error:", err);
       } finally {
         setLoading(false);
       }
@@ -26,13 +26,10 @@ const ListingDetails = () => {
     fetchListing();
   }, [id]);
 
-  const handleDownload = async () => {
-    try {
-      await axios.patch(`http://localhost:5000/api/listings/${listing._id}/download`);
-      window.open(`http://localhost:5000/${listing.fileUrl}`, "_blank");
-    } catch (err) {
-      console.error("Failed to update download count", err);
-    }
+  const handleDownload = () => {
+    if (!listing?.fileUrl) return;
+    const url = listing.fileUrl.replace("/upload/", "/upload/fl_attachment/");
+    window.open(url, "_blank");
   };
 
   const handleBookmark = async () => {
@@ -40,13 +37,11 @@ const ListingDetails = () => {
       await axios.patch(
         `http://localhost:5000/api/listings/${listing._id}/bookmark`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setBookmarked(!bookmarked);
     } catch (err) {
-      console.error("Bookmark toggle failed", err);
+      console.error("❌ Bookmark toggle failed", err);
     }
   };
 
@@ -62,7 +57,9 @@ const ListingDetails = () => {
     return (
       <Container className="text-center py-5">
         <h4>Listing not found</h4>
-        <Link to="/" className="btn btn-dark mt-3">Go Back</Link>
+        <Link to="/" className="btn btn-dark mt-3">
+          Go Back
+        </Link>
       </Container>
     );
   }
@@ -72,18 +69,46 @@ const ListingDetails = () => {
       <Card className="shadow p-4">
         <Card.Title as="h2">{listing.title}</Card.Title>
         <Card.Subtitle className="mb-3 text-muted">{listing.subject}</Card.Subtitle>
-        <p className="text-muted mt-2">📥 Downloads: {listing.downloadCount}</p>
+        <p className="text-muted">📥 Downloads: {listing.downloadCount || 0}</p>
         <Card.Text>{listing.description}</Card.Text>
 
+        {listing.fileUrl && (
+          <>
+            {listing.fileUrl.endsWith(".pdf") ? (
+              <iframe
+                src={listing.fileUrl}
+                width="100%"
+                height="400px"
+                title="PDF Preview"
+                className="mb-4 border rounded"
+              />
+            ) : listing.fileUrl.match(/\.(jpg|jpeg|png|gif)$/) ? (
+              <img
+                src={listing.fileUrl}
+                alt="Preview"
+                width="100%"
+                height="400px"
+                className="mb-4 border rounded object-fit-cover"
+              />
+            ) : (
+              <p className="text-muted small">No preview available</p>
+            )}
+          </>
+        )}
+
         <div className="d-flex gap-2">
-          <Button variant="dark" onClick={handleDownload}>Download</Button>
+          <Button variant="dark" onClick={handleDownload}>
+            Download
+          </Button>
           <Button
             variant={bookmarked ? "secondary" : "outline-secondary"}
             onClick={handleBookmark}
           >
             {bookmarked ? "Bookmarked" : "Bookmark"}
           </Button>
-          <Link to="/" className="btn btn-outline-secondary">Back</Link>
+          <Link to="/" className="btn btn-outline-secondary">
+            Back
+          </Link>
         </div>
       </Card>
     </Container>

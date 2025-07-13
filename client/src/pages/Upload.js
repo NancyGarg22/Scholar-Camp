@@ -63,7 +63,6 @@ const Upload = () => {
   return (
     <Container className="py-4">
       <h2 className="mb-4">📤 Upload Notes</h2>
-
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Form onSubmit={handleSubmit}>
@@ -105,7 +104,7 @@ const Upload = () => {
           <Form.Control
             type="file"
             name="file"
-            accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.png"
             onChange={handleChange}
             required
           />

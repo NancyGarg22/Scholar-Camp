@@ -1,5 +1,3 @@
-// src/components/Navbar.js
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container, Nav, Navbar as BSNavbar } from "react-bootstrap";
@@ -11,7 +9,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();           // uses context's logout
+    logout();
     navigate("/");
   };
 
@@ -30,36 +28,38 @@ const Navbar = () => {
         </Link>
         <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BSNavbar.Collapse id="basic-navbar-nav">
- <Nav className="ms-auto align-items-center">
-  <Link to="/" className="nav-link">Home</Link>
-  <Link to="/upload" className="btn btn-outline-light ms-3 px-3 py-1">Upload</Link>
-  <Link to="/listings" className="nav-link ms-3">Listings</Link>
-  <Link to="/my-uploads" className="nav-link">My Uploads</Link>
-  <Nav.Link as={Link} to="/bookmarks">Bookmarks</Nav.Link>
+          <Nav className="ms-auto align-items-center">
+            <Link to="/" className="nav-link">Home</Link>
+            <Link to="/upload" className="btn btn-outline-light ms-3 px-3 py-1">Upload</Link>
+            <Link to="/listings" className="nav-link ms-3">Listings</Link>
+            <Link to="/my-uploads" className="nav-link">My Uploads</Link>
+            <Nav.Link as={Link} to="/bookmarks">Bookmarks</Nav.Link>
 
-  {!user ? (
-    <>
-      <Link to="/login" className="nav-link ms-3">Login</Link>
-      <Link to="/register" className="nav-link ms-2">Register</Link>
-    </>
-  ) : (
-    <>
-      <span className="nav-link ms-3">Hi, {user.name.split(" ")[0]}</span>
+            {!user ? (
+              <>
+                <Link to="/login" className="nav-link ms-3">Login</Link>
+                <Link to="/register" className="nav-link ms-2">Register</Link>
+              </>
+            ) : (
+              <>
+                <span className="nav-link ms-3">Hi, {user.name?.split(" ")[0]}</span>
 
-      {/* ✅ Only keep this one Admin Panel button */}
-      {user.role === "admin" && (
-        <Link to="/admin-dashboard" className="nav-link ms-2 text-warning fw-bold">
-          Admin Panel
-        </Link>
-      )}
+                {/* ✅ Profile link */}
+                <Link to="/profile" className="nav-link ms-2">
+                  👤 Profile
+                </Link>
 
-      <button onClick={handleLogout} className="btn btn-outline-light ms-2">Logout</button>
-    </>
-  )}
+                {user.role === "admin" && (
+                  <Link to="/admin-dashboard" className="nav-link ms-2 text-warning fw-bold">
+                    Admin Panel
+                  </Link>
+                )}
 
-
-
-
+                <button onClick={handleLogout} className="btn btn-outline-light ms-2">
+                  Logout
+                </button>
+              </>
+            )}
           </Nav>
         </BSNavbar.Collapse>
       </Container>

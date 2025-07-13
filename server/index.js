@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+require("dotenv").config();
 
 // Load environment variables
 dotenv.config();
@@ -14,8 +15,8 @@ const userRoutes = require("./routes/userRoutes");
 // Initialize app
 const app = express();
 
-// Middleware
-app.use(cors());
+// ✅ CORRECT Middleware setup
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 
 // Static file serving (optional for local uploads)
@@ -25,7 +26,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/listings", listingRoutes);
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+
 // Port
 const PORT = process.env.PORT || 5000;
 

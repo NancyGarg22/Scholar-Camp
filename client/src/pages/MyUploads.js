@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Card, Button, Container, Row, Col } from "react-bootstrap";
+import { Card, Button, Container, Row, Col, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 
@@ -8,15 +8,17 @@ const MyUploads = () => {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const token = localStorage.getItem("token");
+console.log("📦 Sending token:", token);
+
   const fetchUploads = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/listings/my", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+     const res = await axios.get("http://localhost:5000/api/listings/my-uploads", {
+  headers: { Authorization: `Bearer ${token}` },
+});
       setUploads(res.data);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("❌ Fetch error:", err);
       toast.error("Failed to fetch your uploads");
     } finally {
       setLoading(false);
@@ -25,16 +27,26 @@ const MyUploads = () => {
 
   const handleDelete = async (id) => {
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/listings/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Listing deleted successfully");
       fetchUploads();
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("❌ Delete error:", err);
       toast.error("Delete failed");
     }
+  };
+
+  const handleDownload = (url) => {
+    if (!url) return;
+    const link = document.createElement("a");
+    link.href = url.replace("/upload/", "/upload/fl_attachment/");
+    link.target = "_blank";
+    link.download = "";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
@@ -46,7 +58,9 @@ const MyUploads = () => {
       <h2 className="text-center mb-4">📁 My Uploads</h2>
 
       {loading ? (
-        <p className="text-center">Loading your uploads...</p>
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="dark" />
+        </div>
       ) : uploads.length === 0 ? (
         <p className="text-center">No uploads found.</p>
       ) : (
@@ -60,20 +74,51 @@ const MyUploads = () => {
                     {item.subject || "No subject"}
                   </Card.Subtitle>
                   <Card.Text>{item.description || "No description"}</Card.Text>
-                  <a
-                    href={item.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-sm btn-outline-primary me-2"
-                  >
-                    Download
-                  </a>
+
+                  {item.fileUrl ? (
+                    <>
+                      {item.fileUrl.endsWith(".pdf") ? (
+                        <iframe
+                          src={item.fileUrl}
+                          width="100%"
+                          height="200px"
+                          className="mb-3 border rounded"
+                          title="PDF Preview"
+                        />
+                      ) : item.fileUrl.match(/\.(jpg|jpeg|png|gif)$/) ? (
+                        <img
+                          src={item.fileUrl}
+                          alt="Preview"
+                          width="100%"
+                          height="200px"
+                          className="mb-3 border rounded object-fit-cover"
+                        />
+                      ) : (
+                        <p className="text-muted small">No preview available</p>
+                      )}
+
+                      <Button
+                        variant="dark"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleDownload(item.fileUrl)}
+                      >
+                        Download
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-danger small">
+                      ⚠️ File not available or was removed.
+                    </p>
+                  )}
+
                   <Link
                     to={`/edit/${item._id}`}
                     className="btn btn-outline-secondary btn-sm me-2"
                   >
                     Edit
                   </Link>
+
                   <Button
                     variant="danger"
                     size="sm"

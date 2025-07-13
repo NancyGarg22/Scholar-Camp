@@ -5,9 +5,9 @@ const User = require("../models/User");
 const crypto = require("crypto");
 const router = express.Router();
 const verifyAuth = require("../middleware/verifyAuth");
-const transporter = require("../utils/mailer");
 const nodemailer = require("nodemailer");
-// Register
+
+// ✅ Register
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -26,7 +26,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Login
+// ✅ Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -41,43 +41,36 @@ router.post("/login", async (req, res) => {
       expiresIn: "7d",
     });
 
-   res.json({
-  token,
-  user: {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role, // ✅ Add this line
-  },
-});
-
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (err) {
     console.error("Login error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
-
-// POST: Forgot Password
+// ✅ Forgot Password
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-
     if (!user)
       return res.status(404).json({ message: "User not found with that email" });
 
-    // Generate reset token
     const token = crypto.randomBytes(20).toString("hex");
-    const expire = Date.now() + 15 * 60 * 1000; // 15 minutes
+    const expire = Date.now() + 15 * 60 * 1000;
 
     user.resetToken = token;
     user.resetTokenExpire = expire;
     await user.save();
 
-    // Email setup
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -100,7 +93,6 @@ router.post("/forgot-password", async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-
     res.json({ message: "Reset email sent. Check your inbox." });
   } catch (err) {
     console.error("Error sending reset email", err);
@@ -108,16 +100,15 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-
-
+// ✅ Reset Password
 router.post("/reset-password/:token", async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
 
   try {
     const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }, // Check expiry
+      resetToken: token,
+      resetTokenExpire: { $gt: Date.now() },
     });
 
     if (!user)
@@ -125,8 +116,8 @@ router.post("/reset-password/:token", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
+    user.resetToken = null;
+    user.resetTokenExpire = null;
     await user.save();
 
     res.json({ message: "Password has been reset successfully" });
@@ -136,22 +127,33 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
-
-
-// ✅ PUT: Update profile
+// ✅ Update Profile
 router.put("/update", verifyAuth, async (req, res) => {
   const { name, email } = req.body;
   try {
-    const user = await User.findById(req.user);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.name = name || user.name;
     user.email = email || user.email;
-
     await user.save();
+
     res.json({ message: "Profile updated", user });
   } catch (err) {
+    console.error("❌ Error updating profile:", err.message);
     res.status(500).json({ message: "Error updating profile" });
+  }
+});
+
+// ✅ Get Current User Profile
+router.get("/me", verifyAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    console.error("❌ Error fetching profile:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
