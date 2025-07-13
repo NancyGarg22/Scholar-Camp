@@ -12,7 +12,16 @@ const BUCKET_NAME = "scholarcamp-notes"; // ✅ Your bucket name
 // ✅ POST: Upload file to Supabase Storage
 router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
   try {
-    const { title, subject, description } = req.body;
+const {
+  title,
+  subject,
+  description,
+  category,
+  format,
+  availability,
+  lendingDuration,
+} = req.body;
+
     const file = req.file;
 
     if (!file) return res.status(400).json({ message: "No file provided" });
@@ -35,12 +44,17 @@ router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
     const fileUrl = publicUrlData?.publicUrl;
 
     const newListing = new Listing({
-      title,
-      subject,
-      description,
-      fileUrl,
-      uploadedBy: req.user.id,
-    });
+  title,
+  subject,
+  description,
+  category,
+  format,
+  availability,
+  lendingDuration,
+  fileUrl,
+  uploadedBy: req.user.id,
+});
+
 
     await newListing.save();
     res.status(201).json(newListing);

@@ -5,6 +5,10 @@ const listingSchema = new mongoose.Schema(
     title: String,
     subject: String,
     description: String,
+    category: String,
+    format: String,
+    availability: String,
+    lendingDuration: String,
     fileUrl: String,
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,

@@ -66,6 +66,25 @@ router.post("/bulk-delete", verifyAuth, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+// Add this to userRoutes.js (or a new stats route)
+router.get("/profile/stats", verifyAuth, async (req, res) => {
+  try {
+    const listings = await Listing.find({ uploadedBy: req.user.id });
+
+    const totalUploads = listings.length;
+
+    // In future: Track who downloaded/borrowed. For now, assume 1 person per upload helped
+    const peopleHelped = listings.length;
+
+    res.json({
+      totalUploads,
+      peopleHelped,
+    });
+  } catch (err) {
+    console.error("❌ Profile stats error:", err);
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+});
 
 
 module.exports = router;
