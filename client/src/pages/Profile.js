@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Card, Form, Button, Spinner, Badge } from "react-bootstrap";
+import {
+  Container,
+  Card,
+  Form,
+  Button,
+  Spinner,
+  Table,
+  Badge,
+} from "react-bootstrap";
 import { toast } from "react-toastify";
 
 const Profile = () => {
@@ -9,13 +17,19 @@ const Profile = () => {
   const [formData, setFormData] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalUploads: 0, peopleHelped: 0 });
+  const [uploads, setUploads] = useState([]);
+  const [publicProfile, setPublicProfile] = useState(true);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put("http://localhost:5000/api/auth/update", formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        "http://localhost:5000/api/users/profile/update",
+        formData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success("✅ Profile updated!");
     } catch (err) {
       console.error("Update failed", err);
@@ -23,14 +37,39 @@ const Profile = () => {
     }
   };
 
+  const togglePublic = async () => {
+    try {
+      const res = await axios.put(
+        "http://localhost:5000/api/users/profile/toggle-public",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPublicProfile(res.data.publicProfile);
+      toast.success("🔁 Visibility updated");
+    } catch (err) {
+      console.error("Error toggling visibility", err);
+      toast.error("⚠️ Failed to update visibility");
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/users/profile/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setStats(res.data))
-      .catch((err) => console.error("❌ Error fetching stats:", err));
-  }, []);
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/users/profile/stats",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setStats(res.data);
+        setUploads(res.data.uploads || []);
+        setPublicProfile(res.data.publicProfile);
+      } catch (err) {
+        console.error("❌ Error fetching stats:", err);
+      }
+    };
+    fetchStats();
+  }, [token]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -59,6 +98,7 @@ const Profile = () => {
 
   return (
     <Container className="py-4">
+      {/* 👤 Basic Info */}
       <Card className="p-4 shadow-sm mb-4">
         <h3 className="mb-3">👤 My Profile</h3>
         <Form onSubmit={handleSubmit}>
@@ -82,23 +122,114 @@ const Profile = () => {
               disabled
             />
           </Form.Group>
-          <Button type="submit" variant="dark" className="mt-2">
+          <Button type="submit" variant="dark" className="me-2">
             💾 Save Changes
           </Button>
         </Form>
       </Card>
 
-      {/* 📊 ScholarCamp Contributions Card */}
-      <Card className="shadow-sm">
+      {/* 📊 Contributions */}
+      <Card className="shadow-sm mb-4">
         <Card.Body>
           <h5>📊 Your ScholarCamp Contribution</h5>
           <ul>
-            <li>📚 Total Uploads: <strong>{stats.totalUploads}</strong></li>
-            <li>🧑‍🤝‍🧑 People Helped: <strong>{stats.peopleHelped}</strong></li>
+            <li>
+              📚 Total Uploads: <strong>{stats.totalUploads}</strong>
+            </li>
+            <li>
+              🧑‍🤝‍🧑 People Helped: <strong>{stats.peopleHelped}</strong>
+            </li>
           </ul>
-          {stats.peopleHelped >= 10 && (
-            <Badge bg="success" className="mt-2">🌟 Scholar Star</Badge>
+          {stats.totalUploads >= 10 && (
+            <Badge bg="info" className="me-2">
+              📘 Power Uploader
+            </Badge>
           )}
+          {stats.peopleHelped >= 10 && (
+            <Badge bg="success">🌟 Scholar Star</Badge>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* 📁 Upload History */}
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h5>📁 Your Upload History</h5>
+          {uploads.length === 0 ? (
+            <p className="text-muted">No uploads yet.</p>
+          ) : (
+            <Table responsive bordered hover>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Subject</th>
+                  <th>Category</th>
+                  <th>Uploaded</th>
+                </tr>
+              </thead>
+              <tbody>
+                {uploads.map((item) => (
+                  <tr key={item._id}>
+                    <td>{item.title}</td>
+                    <td>{item.subject}</td>
+                    <td>{item.category}</td>
+                    <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* 🔗 Public Profile Settings */}
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h5>🔗 Public Profile</h5>
+          <p>
+            Your public profile is currently{" "}
+            <strong>{publicProfile ? "Visible" : "Hidden"}</strong>
+          </p>
+          <Button variant="secondary" onClick={togglePublic}>
+            {publicProfile ? "🙈 Hide Profile" : "🌍 Make Public"}
+          </Button>
+          {publicProfile && (
+            <div className="mt-2">
+              <Form.Control
+                readOnly
+                value={`https://scholarcamp.in/user/${formData.name
+                  .toLowerCase()
+                  .replace(/\s/g, "")}`}
+              />
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* 🌐 Social Media Links */}
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h5>🌐 Connect with me</h5>
+          <div style={{ fontSize: "1.5rem" }}>
+            <a
+              href="https://instagram.com/your_instagram"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="me-3 text-dark"
+              aria-label="Instagram"
+            >
+              <i className="bi bi-instagram"></i>
+            </a>
+            <a
+              href="https://linkedin.com/in/your_linkedin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="me-3 text-dark"
+              aria-label="LinkedIn"
+            >
+              <i className="bi bi-linkedin"></i>
+            </a>
+          </div>
         </Card.Body>
       </Card>
     </Container>

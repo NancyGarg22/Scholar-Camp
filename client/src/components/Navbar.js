@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container, Nav, Navbar as BSNavbar } from "react-bootstrap";
+import { Instagram, Linkedin } from "react-bootstrap-icons"; // Bootstrap Icons
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 
@@ -35,6 +36,9 @@ const Navbar = () => {
             <Link to="/my-uploads" className="nav-link">My Uploads</Link>
             <Nav.Link as={Link} to="/bookmarks">Bookmarks</Nav.Link>
 
+            {/* ✅ Community Forum */}
+            <Link to="/community-forum" className="nav-link ms-3">💬 Community Forum</Link>
+
             {!user ? (
               <>
                 <Link to="/login" className="nav-link ms-3">Login</Link>
@@ -43,11 +47,7 @@ const Navbar = () => {
             ) : (
               <>
                 <span className="nav-link ms-3">Hi, {user.name?.split(" ")[0]}</span>
-
-                {/* ✅ Profile link */}
-                <Link to="/profile" className="nav-link ms-2">
-                  👤 Profile
-                </Link>
+                <Link to="/profile" className="nav-link ms-2">👤 Profile</Link>
 
                 {user.role === "admin" && (
                   <Link to="/admin-dashboard" className="nav-link ms-2 text-warning fw-bold">
@@ -60,6 +60,26 @@ const Navbar = () => {
                 </button>
               </>
             )}
+
+            {/* 🔗 Social Media Icons */}
+            <Nav.Link
+              href="https://instagram.com/your_instagram_handle"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ms-3"
+              title="Instagram"
+            >
+              <Instagram size={20} color="white" />
+            </Nav.Link>
+            <Nav.Link
+              href="https://linkedin.com/in/your_linkedin_profile"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ms-2"
+              title="LinkedIn"
+            >
+              <Linkedin size={20} color="white" />
+            </Nav.Link>
           </Nav>
         </BSNavbar.Collapse>
       </Container>

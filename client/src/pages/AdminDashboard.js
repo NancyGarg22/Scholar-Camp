@@ -264,21 +264,32 @@ const AdminDashboard = () => {
       </div>
 
       <h5 className="mt-5">📚 Listings</h5>
-      <Button variant="outline-primary" size="sm" className="me-2 mb-2" onClick={exportListingsToCSV}>
-        ⬇️ Export Listings to CSV
-      </Button>
-      <Button variant="outline-success" size="sm" className="mb-2" onClick={exportListingsToExcel}>
-        📊 Export Listings to Excel
-      </Button>
-      <Button
-        variant="danger"
-        size="sm"
-        className="mb-2"
-        onClick={handleBulkDeleteListings}
-        disabled={selectedListings.length === 0}
-      >
-        🗑️ Delete Selected Listings
-      </Button>
+<Button
+  variant="outline-primary"
+  size="sm"
+  className="me-2 mb-2"
+  onClick={exportListingsToCSV}
+>
+  ⬇️ Export Listings to CSV
+</Button>
+<Button
+  variant="outline-success"
+  size="sm"
+  className="me-2 mb-2"  // <-- added me-2 here
+  onClick={exportListingsToExcel}
+>
+  📊 Export Listings to Excel
+</Button>
+<Button
+  variant="danger"
+  size="sm"
+  className="mb-2"
+  onClick={handleBulkDeleteListings}
+  disabled={selectedListings.length === 0}
+>
+  🗑️ Delete Selected Listings
+</Button>
+
 
       <input
         type="text"

@@ -28,7 +28,7 @@ const ChangePassword = () => {
     <Container className="py-5 d-flex justify-content-center">
       <Card className="p-4 shadow" style={{ width: "400px" }}>
         <h4 className="mb-3 text-center">🔒 Change Password</h4>
-        {message && <Alert variant="info">{message}</Alert>}
+        {message && <Alert variant={message.startsWith("✅") ? "success" : "danger"}>{message}</Alert>}
 
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">

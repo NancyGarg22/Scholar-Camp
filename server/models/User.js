@@ -4,12 +4,20 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
-  role: { type: String, default: "user" }, // ✅ Add this if missing
+  role: { type: String, default: "user" },
+  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Listing" }],
+  
+  // Add the settings object here
+  settings: {
+    publicProfile: {
+      type: Boolean,
+      default: true,
+    },
+  },
 
-  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Listing" }], // ✅
   resetPasswordToken: String,
-    resetPasswordExpires: Date,
-    resetToken: String,
+  resetPasswordExpires: Date,
+  resetToken: String,
   resetTokenExpires: Date,
 }, { timestamps: true });
 
