@@ -11,7 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const listingRoutes = require("./routes/listingRoutes");
 const userRoutes = require("./routes/userRoutes");
 const forumRoutes = require("./routes/forumRoutes");
-const bookmarkRoutes = require("./routes/bookmarkRoutes");
+
 
 // Initialize app
 const app = express();
@@ -19,7 +19,7 @@ const app = express();
 // Middleware
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
-app.use("/api", bookmarkRoutes);
+
 // Optional: Serve static uploads
 app.use("/uploads", express.static("uploads"));
 

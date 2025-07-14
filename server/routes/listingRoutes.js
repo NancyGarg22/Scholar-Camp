@@ -13,6 +13,18 @@ const BUCKET_NAME = "scholarcamp-notes";
 // ✅ PATCH: Toggle Bookmark
 router.patch("/:id/bookmark", verifyAuth, toggleBookmark);
 
+// ✅ GET: My Bookmarks
+router.get("/bookmarks/my", verifyAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate("bookmarks");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user.bookmarks);
+  } catch (err) {
+    res.status(500).json({ message: "Fetch bookmarks failed" });
+  }
+});
+
 // ✅ POST: Upload
 router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
   try {
@@ -65,17 +77,19 @@ router.post("/upload", verifyAuth, upload.single("file"), async (req, res) => {
   }
 });
 
-// ✅ GET All Listings
+// ✅ GET: All Listings
 router.get("/all", async (req, res) => {
   try {
-    const listings = await Listing.find().populate("uploadedBy", "name _id").sort({ createdAt: -1 });
+    const listings = await Listing.find()
+      .populate("uploadedBy", "name _id")
+      .sort({ createdAt: -1 });
     res.json(listings);
   } catch (err) {
     res.status(500).json({ message: "Server error fetching listings" });
   }
 });
 
-// ✅ GET My Uploads
+// ✅ GET: My Uploads
 router.get("/my-uploads", verifyAuth, async (req, res) => {
   try {
     const listings = await Listing.find({ uploadedBy: req.user.id });
@@ -85,7 +99,7 @@ router.get("/my-uploads", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ GET Search Listings
+// ✅ GET: Search Listings
 router.get("/search/query", async (req, res) => {
   try {
     const q = req.query.q || "";
@@ -103,33 +117,17 @@ router.get("/search/query", async (req, res) => {
   }
 });
 
-// ✅ GET My Bookmarks
-router.get("/bookmarks/my", verifyAuth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).populate("bookmarks");
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    res.json(user.bookmarks);
-  } catch (err) {
-    res.status(500).json({ message: "Fetch bookmarks failed" });
-  }
-});
-
-// ✅ PUT Update Listing
+// ✅ PUT: Update Listing
 router.put("/:id", verifyAuth, async (req, res) => {
   try {
     const { title, subject, description } = req.body;
-    console.log("Received update request:", { title, subject, description });
-
     const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
-    // Optional: Check permission
     if (listing.uploadedBy.toString() !== req.user.id) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Apply updates
     listing.title = title || listing.title;
     listing.subject = subject || listing.subject;
     listing.description = description || listing.description;
@@ -143,8 +141,7 @@ router.put("/:id", verifyAuth, async (req, res) => {
   }
 });
 
-
-// ✅ DELETE Listing
+// ✅ DELETE: Listing
 router.delete("/:id", verifyAuth, async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
@@ -160,7 +157,7 @@ router.delete("/:id", verifyAuth, async (req, res) => {
   }
 });
 
-// ✅ GET Single Listing (Keep LAST)
+// ✅ GET: Single Listing (Keep LAST)
 router.get("/:id", async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
