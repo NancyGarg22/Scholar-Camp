@@ -1,24 +1,27 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
-  role: { type: String, default: "user" },
-  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Listing" }],
-  
-  // Add the settings object here
-  settings: {
-    publicProfile: {
-      type: Boolean,
-      default: true,
-    },
-  },
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    isAdmin: { type: Boolean, default: false },
 
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
-  resetToken: String,
-  resetTokenExpires: Date,
-}, { timestamps: true });
+    // ✅ Social Links
+    linkedin: { type: String, default: "" },
+    instagram: { type: String, default: "" },
+
+    // ✅ Bookmarked Listings
+    bookmarks: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Listing",
+      },
+    ],
+
+    // You can add settings or other fields here later
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("User", userSchema);

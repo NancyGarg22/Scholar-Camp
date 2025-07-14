@@ -21,23 +21,35 @@ const CommunityForum = () => {
   const [creating, setCreating] = useState(false);
   const [replyText, setReplyText] = useState({});
   const [showReplies, setShowReplies] = useState({});
+  const [user, setUser] = useState({});
 
- const fetchThreads = async () => {
-  try {
-    const res = await axiosInstance.get("/forum/posts");
-    setThreads(res.data);
-  } catch (err) {
-    console.error("❌ Error fetching threads:", err?.response?.data || err.message);
-    toast.error(err?.response?.data?.error || "Failed to load threads");
-    setThreads([]); // Optional: clear stale data if error occurs
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchThreads = async () => {
+    try {
+      const res = await axiosInstance.get("/forum/posts");
+      setThreads(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching threads:", err?.response?.data || err.message);
+      toast.error(err?.response?.data?.error || "Failed to load threads");
+      setThreads([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const fetchUser = async () => {
+    try {
+      const res = await axiosInstance.get("/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error("❌ Failed to fetch user data:", err);
+    }
+  };
 
   useEffect(() => {
     fetchThreads();
+    fetchUser();
   }, []);
 
   const handleShowModal = () => setShowModal(true);
@@ -55,7 +67,6 @@ const CommunityForum = () => {
     setCreating(true);
     try {
       await axiosInstance.post("/forum/posts", newThread);
-
       toast.success("Thread created!");
       fetchThreads();
       handleCloseModal();
@@ -75,11 +86,9 @@ const CommunityForum = () => {
     }
 
     try {
-      await axiosInstance.post(
-        `/forum/posts/${threadId}/replies`,
-        { content: reply },
-       
-      );
+      await axiosInstance.post(`/forum/posts/${threadId}/replies`, {
+        content: reply,
+      });
 
       toast.success("Reply added!");
       setReplyText({ ...replyText, [threadId]: "" });
@@ -106,13 +115,41 @@ const CommunityForum = () => {
         <ListGroup>
           {threads.map((thread) => (
             <ListGroup.Item key={thread._id}>
-              <strong>{thread.title}</strong>
-              <p>{thread.content}</p>
-              <small className="text-muted">
-                Created on {new Date(thread.createdAt).toLocaleString()}
-              </small>
+              <div className="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>{thread.title}</strong>
+                  <p>{thread.content}</p>
+                  <small className="text-muted">
+                    Created on {new Date(thread.createdAt).toLocaleString()}
+                  </small>
+                </div>
+                {/* 👤 Optional Social Links */}
+                {(user.linkedin || user.instagram) && (
+                  <div>
+                    {user.linkedin && (
+                      <a
+                        href={user.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="me-2 text-dark"
+                      >
+                        <i className="bi bi-linkedin fs-5"></i>
+                      </a>
+                    )}
+                    {user.instagram && (
+                      <a
+                        href={user.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-dark"
+                      >
+                        <i className="bi bi-instagram fs-5"></i>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
 
-              {/* Replies toggle */}
               <div className="mt-2">
                 <Button
                   size="sm"
@@ -128,28 +165,24 @@ const CommunityForum = () => {
                 </Button>
               </div>
 
-              {/* Replies display */}
               <Collapse in={showReplies[thread._id]}>
                 <div className="mt-3">
-              {(!thread.replies || thread.replies.length === 0) ? (
-  <p className="text-muted">No replies yet.</p>
-) : (
-  <ListGroup variant="flush">
-    {thread.replies.map((reply) => (
-      <ListGroup.Item key={reply._id}>
-        {reply.content}
-        <br />
-        <small className="text-muted">
-          {new Date(reply.createdAt).toLocaleString()}
-        </small>
-      </ListGroup.Item>
-    ))}
-  </ListGroup>
-)}
+                  {!thread.replies || thread.replies.length === 0 ? (
+                    <p className="text-muted">No replies yet.</p>
+                  ) : (
+                    <ListGroup variant="flush">
+                      {thread.replies.map((reply) => (
+                        <ListGroup.Item key={reply._id}>
+                          {reply.content}
+                          <br />
+                          <small className="text-muted">
+                            {new Date(reply.createdAt).toLocaleString()}
+                          </small>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  )}
 
-
-
-                  {/* Reply input */}
                   <Form.Group className="mt-3">
                     <Form.Control
                       placeholder="Write your reply..."

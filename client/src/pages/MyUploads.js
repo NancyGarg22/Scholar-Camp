@@ -1,27 +1,44 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Card, Button, Container, Row, Col, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  Container,
+  Row,
+  Col,
+  Spinner,
+} from "react-bootstrap";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 
 const MyUploads = () => {
   const [uploads, setUploads] = useState([]);
+  const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
-
   const token = localStorage.getItem("token");
-console.log("📦 Sending token:", token);
 
   const fetchUploads = async () => {
     try {
-     const res = await axios.get("http://localhost:5000/api/listings/my-uploads", {
-  headers: { Authorization: `Bearer ${token}` },
-});
+      const res = await axios.get("http://localhost:5000/api/listings/my-uploads", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUploads(res.data);
     } catch (err) {
       console.error("❌ Fetch error:", err);
       toast.error("Failed to fetch your uploads");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error("❌ Fetch user error:", err);
     }
   };
 
@@ -51,6 +68,7 @@ console.log("📦 Sending token:", token);
 
   useEffect(() => {
     fetchUploads();
+    fetchUser();
   }, []);
 
   return (
@@ -126,6 +144,33 @@ console.log("📦 Sending token:", token);
                   >
                     Delete
                   </Button>
+
+                  {(user.linkedin || user.instagram) && (
+                    <div className="mt-3">
+                      {user.linkedin && (
+                        <a
+                          href={user.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="me-3 text-dark"
+                          aria-label="LinkedIn"
+                        >
+                          <i className="bi bi-linkedin fs-5"></i>
+                        </a>
+                      )}
+                      {user.instagram && (
+                        <a
+                          href={user.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-dark"
+                          aria-label="Instagram"
+                        >
+                          <i className="bi bi-instagram fs-5"></i>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </Card.Body>
               </Card>
             </Col>

@@ -41,26 +41,35 @@ const Listings = () => {
     fetchBookmarks();
   }, [token]);
 
-  const handleBookmarkToggle = async (id) => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    try {
-      await axios.patch(
-        `http://localhost:5000/api/listings/${id}/bookmark`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setBookmarkedListings((prev) =>
-        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-      );
-    } catch (err) {
-      console.error("Bookmark toggle failed", err);
-    }
-  };
+  const handleBookmarkToggle = async (listingId) => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const res = await axios.patch(
+      `http://localhost:5000/api/listings/${listingId}/bookmark`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setBookmarkedListings((prev) =>
+      prev.includes(listingId)
+        ? prev.filter((id) => id !== listingId)
+        : [...prev, listingId]
+    );
+
+    console.log("✅ Bookmark toggled", res.data);
+  } catch (err) {
+    console.error("❌ Failed to toggle bookmark", err);
+  }
+};
+
 
   const handleDownload = (fileUrl) => {
     if (!user) {
@@ -91,11 +100,19 @@ const Listings = () => {
             <Col key={listing._id}>
               <Card className="h-100 shadow border-0 bg-light d-flex flex-column">
                 <Card.Body>
-                  <Card.Title>{listing.title}</Card.Title>
+                  <h5>{listing.title}</h5>
                   <Card.Subtitle className="mb-2 text-muted">{listing.subject}</Card.Subtitle>
                   <Card.Text>{listing.description}</Card.Text>
 
-                  {/* ✅ Safe preview handling */}
+                  {listing.uploadedBy?.name && (
+                    <p className="text-muted small">
+                      Uploaded by:{" "}
+                      <a href={`/profile/${listing.uploadedBy._id}`}>
+                        {listing.uploadedBy.name}
+                      </a>
+                    </p>
+                  )}
+
                   {listing.fileUrl && (
                     <>
                       {listing.fileUrl.endsWith(".pdf") ? (

@@ -42,19 +42,28 @@ const EditListing = () => {
   };
 
   const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5000/api/listings/${id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Listing updated");
-      navigate("/my-uploads");
+  e.preventDefault();
 
-    } catch (err) {
-      toast.error("Update failed");
-    }
-  };
+  const { title, subject, description } = formData;
+
+  try {
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `http://localhost:5000/api/listings/${id}`,
+      { title, subject, description }, // only send required fields
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    toast.success("Listing updated");
+    navigate("/my-uploads");
+  } catch (err) {
+    console.error("❌ Update failed:", err.response?.data || err.message);
+    toast.error("Update failed");
+  }
+};
+
 
   return (
     <Container className="mt-4">

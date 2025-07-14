@@ -17,22 +17,18 @@ import ChangePassword from "./pages/ChangePassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import Unauthorized from "./pages/Unauthorized";
-import CommunityForum from "./pages/CommunityForum"; // ✅ Import Community Forum page
+import CommunityForum from "./pages/CommunityForum";
+import PublicProfile from "./pages/PublicProfile";
+import Home from "./pages/Home";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import Home from "./pages/Home"; // ✅ Add this at the top
-
-
 
 function App() {
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />  // ✅ Set Home as the new default
-
-        <Route path="/" element={<Listings />} /> {/* ✅ Default is Browse */}
+        <Route path="/" element={<Home />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
@@ -55,7 +51,7 @@ function App() {
           }
         />
         <Route path="/unauthorized" element={<Unauthorized />} />
-
+        <Route path="/profile/:id" element={<PublicProfile />} />
         <Route
           path="/bookmarks"
           element={
@@ -104,13 +100,9 @@ function App() {
             </PrivateRoute>
           }
         />
-
-        {/* ✅ Community Forum Route */}
         <Route path="/community-forum" element={<CommunityForum />} />
-
         <Route path="*" element={<NotFound />} />
       </Routes>
-
       <ToastContainer position="top-center" autoClose={2000} />
     </>
   );

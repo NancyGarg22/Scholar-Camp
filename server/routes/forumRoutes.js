@@ -8,7 +8,8 @@ const verifyAuth = require("../middleware/verifyAuth");
 router.get("/posts", async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate("user", "name")
+      .populate("user", "name linkedin instagram")
+
       .populate({
         path: "replies",
         populate: {
@@ -24,6 +25,7 @@ router.get("/posts", async (req, res) => {
     res.status(500).json({ error: "Failed to load posts" });
   }
 });
+
 
 
 
@@ -44,7 +46,8 @@ router.post("/posts", verifyAuth, async (req, res) => {
 router.get("/posts/:id/replies", async (req, res) => {
   try {
     const replies = await Reply.find({ post: req.params.id })
-      .populate("user", "name")
+    .populate("user", "name linkedin instagram")
+
       .sort({ createdAt: 1 });
     res.json(replies);
   } catch (err) {

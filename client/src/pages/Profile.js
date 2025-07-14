@@ -14,11 +14,17 @@ import { toast } from "react-toastify";
 const Profile = () => {
   const token = localStorage.getItem("token");
 
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    linkedin: "",
+    instagram: "",
+  });
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalUploads: 0, peopleHelped: 0 });
   const [uploads, setUploads] = useState([]);
   const [publicProfile, setPublicProfile] = useState(true);
+  const [savingSocials, setSavingSocials] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +40,28 @@ const Profile = () => {
     } catch (err) {
       console.error("Update failed", err);
       toast.error("❌ Failed to update profile");
+    }
+  };
+
+  const handleSocialSave = async () => {
+    setSavingSocials(true);
+    try {
+      await axios.put(
+        "http://localhost:5000/api/users/update-socials",
+        {
+          linkedin: formData.linkedin,
+          instagram: formData.instagram,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("✅ Social links updated!");
+    } catch (err) {
+      console.error("Social update failed", err);
+      toast.error("❌ Failed to update social links");
+    } finally {
+      setSavingSocials(false);
     }
   };
 
@@ -77,7 +105,13 @@ const Profile = () => {
         const res = await axios.get("http://localhost:5000/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setFormData({ name: res.data.name, email: res.data.email });
+        setFormData((prev) => ({
+          ...prev,
+          name: res.data.name,
+          email: res.data.email,
+          linkedin: res.data.linkedin || "",
+          instagram: res.data.instagram || "",
+        }));
       } catch (err) {
         console.error("Failed to fetch profile", err);
         toast.error("⚠️ Failed to load profile");
@@ -126,6 +160,92 @@ const Profile = () => {
             💾 Save Changes
           </Button>
         </Form>
+      </Card>
+
+      {/* 🔗 Public Profile Settings */}
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h5>🔗 Public Profile</h5>
+          <p>
+            Your public profile is currently{" "}
+            <strong>{publicProfile ? "Visible" : "Hidden"}</strong>
+          </p>
+          <Button variant="secondary" onClick={togglePublic}>
+            {publicProfile ? "🙈 Hide Profile" : "🌍 Make Public"}
+          </Button>
+
+          {publicProfile && (
+            <div className="mt-3">
+              <Form.Label>Profile Link</Form.Label>
+              <Form.Control
+                readOnly
+                value={`https://scholarcamp.in/user/${formData.name
+                  .toLowerCase()
+                  .replace(/\s/g, "")}`}
+              />
+
+              {/* ✅ Show Socials if available */}
+              <div className="mt-3">
+                {formData.linkedin && (
+                  <a
+                    href={formData.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="me-3"
+                  >
+                    <i className="bi bi-linkedin fs-4 text-primary"></i>
+                  </a>
+                )}
+                {formData.instagram && (
+                  <a
+                    href={formData.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i className="bi bi-instagram fs-4 text-danger"></i>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* 🌐 Social Media Links */}
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h5>🌐 Social Media Links</h5>
+          <Form.Group className="mb-2">
+            <Form.Label>LinkedIn</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="https://linkedin.com/in/username"
+              value={formData.linkedin}
+              onChange={(e) =>
+                setFormData({ ...formData, linkedin: e.target.value })
+              }
+            />
+          </Form.Group>
+          <Form.Group className="mb-2">
+            <Form.Label>Instagram</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="https://instagram.com/username"
+              value={formData.instagram}
+              onChange={(e) =>
+                setFormData({ ...formData, instagram: e.target.value })
+              }
+            />
+          </Form.Group>
+          <Button
+            variant="primary"
+            className="mt-2"
+            onClick={handleSocialSave}
+            disabled={savingSocials}
+          >
+            {savingSocials ? "Saving..." : "💾 Save Social Links"}
+          </Button>
+        </Card.Body>
       </Card>
 
       {/* 📊 Contributions */}
@@ -179,57 +299,6 @@ const Profile = () => {
               </tbody>
             </Table>
           )}
-        </Card.Body>
-      </Card>
-
-      {/* 🔗 Public Profile Settings */}
-      <Card className="shadow-sm mb-4">
-        <Card.Body>
-          <h5>🔗 Public Profile</h5>
-          <p>
-            Your public profile is currently{" "}
-            <strong>{publicProfile ? "Visible" : "Hidden"}</strong>
-          </p>
-          <Button variant="secondary" onClick={togglePublic}>
-            {publicProfile ? "🙈 Hide Profile" : "🌍 Make Public"}
-          </Button>
-          {publicProfile && (
-            <div className="mt-2">
-              <Form.Control
-                readOnly
-                value={`https://scholarcamp.in/user/${formData.name
-                  .toLowerCase()
-                  .replace(/\s/g, "")}`}
-              />
-            </div>
-          )}
-        </Card.Body>
-      </Card>
-
-      {/* 🌐 Social Media Links */}
-      <Card className="shadow-sm mb-4">
-        <Card.Body>
-          <h5>🌐 Connect with me</h5>
-          <div style={{ fontSize: "1.5rem" }}>
-            <a
-              href="https://instagram.com/your_instagram"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="me-3 text-dark"
-              aria-label="Instagram"
-            >
-              <i className="bi bi-instagram"></i>
-            </a>
-            <a
-              href="https://linkedin.com/in/your_linkedin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="me-3 text-dark"
-              aria-label="LinkedIn"
-            >
-              <i className="bi bi-linkedin"></i>
-            </a>
-          </div>
         </Card.Body>
       </Card>
     </Container>

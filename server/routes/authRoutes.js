@@ -12,8 +12,7 @@ router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "Email already exists" });
+    if (existingUser) return res.status(400).json({ message: "Email already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
@@ -30,16 +29,13 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Invalid password" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.json({
       token,
@@ -61,8 +57,7 @@ router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(404).json({ message: "User not found with that email" });
+    if (!user) return res.status(404).json({ message: "User not found with that email" });
 
     const token = crypto.randomBytes(20).toString("hex");
     const expire = Date.now() + 15 * 60 * 1000;
@@ -111,8 +106,7 @@ router.post("/reset-password/:token", async (req, res) => {
       resetTokenExpire: { $gt: Date.now() },
     });
 
-    if (!user)
-      return res.status(400).json({ message: "Invalid or expired token" });
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
@@ -158,3 +152,4 @@ router.get("/me", verifyAuth, async (req, res) => {
 });
 
 module.exports = router;
+
