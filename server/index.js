@@ -16,7 +16,10 @@ const forumRoutes = require("./routes/forumRoutes");
 const app = express();
 
 // Middleware
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:3000", // ✅ Use client URL from env
+  credentials: true,
+}));
 app.use(express.json());
 
 // Optional: Serve static uploads
@@ -25,17 +28,19 @@ app.use("/uploads", express.static("uploads"));
 // ✅ Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/listings", listingRoutes); // bookmarks, uploads, etc.
+app.use("/api/listings", listingRoutes);
 app.use("/api/forum", forumRoutes);
-app.use('/api/listings', require('./routes/listingRoutes'));
+
+// ✅ Health check route for Render
+app.get("/", (req, res) => {
+  res.send("🎓 ScholarCamp API is running!");
+});
 
 // MongoDB Connection
 const PORT = process.env.PORT || 5000;
+
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
     console.log("✅ Routes mounted");
