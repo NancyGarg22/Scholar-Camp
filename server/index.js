@@ -12,7 +12,6 @@ const listingRoutes = require("./routes/listingRoutes");
 const userRoutes = require("./routes/userRoutes");
 const forumRoutes = require("./routes/forumRoutes");
 
-
 // Initialize app
 const app = express();
 
@@ -26,8 +25,9 @@ app.use("/uploads", express.static("uploads"));
 // ✅ Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/listings", listingRoutes); // <-- bookmark route lives here
+app.use("/api/listings", listingRoutes); // bookmarks, uploads, etc.
 app.use("/api/forum", forumRoutes);
+app.use('/api/listings', require('./routes/listingRoutes'));
 
 // MongoDB Connection
 const PORT = process.env.PORT || 5000;

@@ -12,7 +12,7 @@ const ChangePassword = () => {
     e.preventDefault();
     try {
       await axios.put(
-        "http://localhost:5000/api/user/change-password",
+        "http://localhost:5000/api/users/change-password",
         { oldPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );

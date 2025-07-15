@@ -1,7 +1,7 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { Container, Nav, Navbar as BSNavbar } from "react-bootstrap";
-import { Instagram, Linkedin } from "react-bootstrap-icons"; // Bootstrap Icons
+import { Instagram, Linkedin } from "react-bootstrap-icons";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 
@@ -14,10 +14,14 @@ const Navbar = () => {
     navigate("/");
   };
 
+  const getNavLinkClass = ({ isActive }) =>
+    isActive ? "nav-link active-link ms-3" : "nav-link ms-3";
+
   return (
     <BSNavbar bg="dark" variant="dark" expand="lg" className="py-3">
       <Container>
-        <Link to="/" className="navbar-brand d-flex align-items-center">
+        {/* Logo and Brand */}
+        <NavLink to="/" className="navbar-brand d-flex align-items-center">
           <img
             src={logo}
             alt="ScholarCamp Logo"
@@ -26,42 +30,43 @@ const Navbar = () => {
             style={{ borderRadius: "4px" }}
           />
           <span className="fw-bold fs-4">ScholarCamp</span>
-        </Link>
+        </NavLink>
+
         <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BSNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto align-items-center">
-            <Link to="/" className="nav-link">Home</Link>
-            <Link to="/upload" className="btn btn-outline-light ms-3 px-3 py-1">Upload</Link>
-            <Link to="/listings" className="nav-link ms-3">Listings</Link>
-            <Link to="/my-uploads" className="nav-link">My Uploads</Link>
-            <Nav.Link as={Link} to="/bookmarks">Bookmarks</Nav.Link>
+            {/* Home link now goes to `/` */}
+            <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active-link" : "nav-link"}>
+              Home
+            </NavLink>
 
-            {/* ✅ Community Forum */}
-            <Link to="/community-forum" className="nav-link ms-3">💬 Community Forum</Link>
+            <Link to="/upload" className="upload-button">Upload</Link>
+            <NavLink to="/listings" className={getNavLinkClass}>Listings</NavLink>
+            <NavLink to="/my-uploads" className={getNavLinkClass}>My Uploads</NavLink>
+            <NavLink to="/bookmarks" className={getNavLinkClass}>Bookmarks</NavLink>
+            <NavLink to="/community-forum" className={getNavLinkClass}>💬 Community Forum</NavLink>
 
             {!user ? (
               <>
-                <Link to="/login" className="nav-link ms-3">Login</Link>
-                <Link to="/register" className="nav-link ms-2">Register</Link>
+                <NavLink to="/login" className={getNavLinkClass}>Login</NavLink>
+                <NavLink to="/register" className={getNavLinkClass}>Register</NavLink>
               </>
             ) : (
               <>
                 <span className="nav-link ms-3">Hi, {user.name?.split(" ")[0]}</span>
-                <Link to="/profile" className="nav-link ms-2">👤 Profile</Link>
-
-                {user.role === "admin" && (
-                  <Link to="/admin-dashboard" className="nav-link ms-2 text-warning fw-bold">
+                <NavLink to="/profile" className={getNavLinkClass}>👤 Profile</NavLink>
+                {user?.role === "admin" && (
+                  <NavLink to="/admin-dashboard" className="nav-link ms-3 active-link">
                     Admin Panel
-                  </Link>
+                  </NavLink>
                 )}
-
                 <button onClick={handleLogout} className="btn btn-outline-light ms-2">
                   Logout
                 </button>
               </>
             )}
 
-            {/* 🔗 Social Media Icons */}
+            {/* Social Icons */}
             <Nav.Link
               href="https://instagram.com/your_instagram_handle"
               target="_blank"

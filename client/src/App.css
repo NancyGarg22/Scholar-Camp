@@ -36,3 +36,50 @@
     transform: rotate(360deg);
   }
 }
+
+/* ------------------ Navbar Custom Styling ------------------ */
+
+/* ------------------ Navbar Custom Styling ------------------ */
+
+/* All nav links */
+.nav-link {
+  color: white !important;
+  text-decoration: none;
+  padding: 8px 12px;
+  margin: 0 6px;
+  position: relative;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+/* ACTIVE nav-link (Glow + Tab-like look) */
+.active-link {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px); /* slightly lift up */
+  padding: 8px 14px;
+}
+
+/* Hover effect */
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+/* Upload button - always styled as button */
+.upload-button {
+  padding: 6px 16px;
+  margin-left: 12px;
+  border: 1px solid white;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  color: white;
+}

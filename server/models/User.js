@@ -5,21 +5,19 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    isAdmin: { type: Boolean, default: false },
 
-    // ✅ Social Links
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+
+    // Optional
     linkedin: { type: String, default: "" },
     instagram: { type: String, default: "" },
 
-    // ✅ Bookmarked Listings
     bookmarks: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Listing",
       },
     ],
-
-    // You can add settings or other fields here later
   },
   { timestamps: true }
 );

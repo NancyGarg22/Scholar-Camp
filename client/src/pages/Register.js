@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Form, Button, Container, Card } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // ✅ Redirect if already logged in
+  if (user) return <Navigate to="/" />;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -40,7 +45,9 @@ const Register = () => {
             <Form.Label>Password</Form.Label>
             <Form.Control name="password" type="password" onChange={handleChange} required />
           </Form.Group>
-          <Button type="submit" variant="dark" className="w-100">Register</Button>
+          <Button type="submit" variant="dark" className="w-100">
+            Register
+          </Button>
         </Form>
       </Card>
     </Container>

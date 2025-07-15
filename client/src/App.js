@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
 import Upload from "./pages/Upload";
@@ -21,88 +21,104 @@ import CommunityForum from "./pages/CommunityForum";
 import PublicProfile from "./pages/PublicProfile";
 import Home from "./pages/Home";
 import { ToastContainer } from "react-toastify";
+import AdminRoute from "./components/AdminRoute";
+import { useAuth } from "./context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
+import "./App.css";
 
 function App() {
+  const { user } = useAuth();
+
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/listings" element={<Listings />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/listing/:id"
-          element={
-            <PrivateRoute>
-              <ListingDetails />
-            </PrivateRoute>
-          }
-        />
+        {/* 🔐 Public Routes */}
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route
-          path="/change-password"
-          element={
-            <PrivateRoute>
-              <ChangePassword />
-            </PrivateRoute>
-          }
-        />
+
+        {/* 🔒 Protected Routes */}
+        <Route path="/" element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        } />
+        <Route path="/home" element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        } />
+
+        <Route path="/listings" element={
+          <PrivateRoute>
+            <Listings />
+          </PrivateRoute>
+        } />
+
+        <Route path="/upload" element={
+          <PrivateRoute>
+            <Upload />
+          </PrivateRoute>
+        } />
+
+        <Route path="/listing/:id" element={
+          <PrivateRoute>
+            <ListingDetails />
+          </PrivateRoute>
+        } />
+
+        <Route path="/edit/:id" element={
+          <PrivateRoute>
+            <EditListing />
+          </PrivateRoute>
+        } />
+
+        <Route path="/my-uploads" element={
+          <PrivateRoute>
+            <MyUploads />
+          </PrivateRoute>
+        } />
+
+        <Route path="/bookmarks" element={
+          <PrivateRoute>
+            <MyBookmarks />
+          </PrivateRoute>
+        } />
+
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        } />
+
+        <Route path="/change-password" element={
+          <PrivateRoute>
+            <ChangePassword />
+          </PrivateRoute>
+        } />
+
+        <Route path="/profile/:id" element={
+          <PrivateRoute>
+            <PublicProfile />
+          </PrivateRoute>
+        } />
+
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/profile/:id" element={<PublicProfile />} />
-        <Route
-          path="/bookmarks"
-          element={
-            <PrivateRoute>
-              <MyBookmarks />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/my-uploads"
-          element={
-            <PrivateRoute>
-              <MyUploads />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/upload"
-          element={
-            <PrivateRoute>
-              <Upload />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/edit/:id"
-          element={
-            <PrivateRoute>
-              <EditListing />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin-dashboard"
-          element={
-            <PrivateRoute requiredRole="admin">
-              <AdminDashboard />
-            </PrivateRoute>
-          }
-        />
         <Route path="/community-forum" element={<CommunityForum />} />
+
+        {/* Admin-only route */}
+        <Route path="/admin-dashboard" element={
+          <PrivateRoute requiredRole="admin">
+            <AdminDashboard />
+          </PrivateRoute>
+        } />
+
+        {/* Fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+
       <ToastContainer position="top-center" autoClose={2000} />
     </>
   );

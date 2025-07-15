@@ -179,7 +179,7 @@ const Profile = () => {
               <Form.Label>Profile Link</Form.Label>
               <Form.Control
                 readOnly
-                value={`https://scholarcamp.in/user/${formData.name
+                value={`https://scholarcamp.in/users/${formData.name
                   .toLowerCase()
                   .replace(/\s/g, "")}`}
               />
