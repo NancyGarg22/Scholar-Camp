@@ -19,7 +19,8 @@ const MyUploads = () => {
 
   const fetchUploads = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/listings/my-uploads", {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/listings/my-uploads`, {
+
         headers: { Authorization: `Bearer ${token}` },
       });
       setUploads(res.data);
@@ -33,9 +34,10 @@ const MyUploads = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/me`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
       setUser(res.data);
     } catch (err) {
       console.error("❌ Fetch user error:", err);
@@ -44,9 +46,10 @@ const MyUploads = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/listings/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/listings/${id}`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
       toast.success("Listing deleted successfully");
       fetchUploads();
     } catch (err) {

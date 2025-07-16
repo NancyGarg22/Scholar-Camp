@@ -86,7 +86,9 @@ router.post("/forgot-password", async (req, res) => {
       },
     });
 
-    const resetUrl = `http://localhost:3000/reset-password/${token}`;
+const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+
     const mailOptions = {
       from: `ScholarCamp <${process.env.EMAIL_USER}>`,
       to: user.email,

@@ -16,37 +16,42 @@ const forumRoutes = require("./routes/forumRoutes");
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000", // ✅ Use client URL from env
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "https://scholar-camp-client.onrender.com", // ✅ Use deployed frontend URL
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-// Optional: Serve static uploads
+// Serve uploaded files
 app.use("/uploads", express.static("uploads"));
 
-// ✅ Mount routes
+// Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/forum", forumRoutes);
 
-// ✅ Health check route for Render
+// Health check route
 app.get("/", (req, res) => {
   res.send("🎓 ScholarCamp API is running!");
 });
 
-// MongoDB Connection
+// MongoDB connection + Start server
 const PORT = process.env.PORT || 5000;
 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
-    console.log("✅ Routes mounted");
-    app.listen(PORT, () =>
-      console.log(`🚀 Server running on http://localhost:${PORT}`)
-    );
+   console.log("✅ Routes mounted");
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Access it via: ${process.env.CLIENT_URL || "http://localhost:" + PORT}`);
+});
+
+
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);

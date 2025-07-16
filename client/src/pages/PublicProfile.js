@@ -13,7 +13,7 @@ const PublicProfile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/users/public/${id}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/public/${id}`);
         setUser(res.data);
         setUploads(res.data.uploads || []);
       } catch (err) {

@@ -11,11 +11,13 @@ const ChangePassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(
-        "http://localhost:5000/api/users/change-password",
-        { oldPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  await axios.put(
+  `${process.env.REACT_APP_API_URL}/api/users/change-password`,
+  { oldPassword, newPassword },
+  { headers: { Authorization: `Bearer ${token}` } }
+);
+
+
       setMessage("✅ Password updated successfully");
       setOldPassword("");
       setNewPassword("");

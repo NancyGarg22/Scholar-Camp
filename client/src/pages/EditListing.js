@@ -16,7 +16,8 @@ const EditListing = () => {
   useEffect(() => {
     const fetchListing = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/listings/all`);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/listings/all`);
+
         const listing = res.data.find((item) => item._id === id);
 
         if (!listing) {
@@ -48,13 +49,14 @@ const EditListing = () => {
 
   try {
     const token = localStorage.getItem("token");
-    await axios.put(
-      `http://localhost:5000/api/listings/${id}`,
-      { title, subject, description }, // only send required fields
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+await axios.put(
+  `${process.env.REACT_APP_API_URL}/api/listings/${id}`,
+  { title, subject, description },
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
+
 
     toast.success("Listing updated");
     navigate("/my-uploads");

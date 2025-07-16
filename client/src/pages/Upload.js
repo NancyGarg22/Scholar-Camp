@@ -48,7 +48,7 @@ const Upload = () => {
       setLoading(true);
       setError("");
 
-      const response = await axios.post("http://localhost:5000/api/listings/upload", data, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/listings/upload`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,

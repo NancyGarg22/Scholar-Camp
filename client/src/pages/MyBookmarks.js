@@ -10,7 +10,8 @@ const MyBookmarks = () => {
   useEffect(() => {
     const fetchBookmarks = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/listings/bookmarks/my", {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/listings/bookmarks/my`, {
+
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -51,7 +52,8 @@ const MyBookmarks = () => {
                 </Card.Body>
                 <Card.Footer className="bg-transparent border-0">
                   <a
-                    href={`http://localhost:5000/${listing.fileUrl}`}
+                    href={`${process.env.REACT_APP_API_URL}/${listing.fileUrl}`}
+
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-dark btn-sm w-100"

@@ -15,7 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/listings/all");
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/listings/all`);
         setListings(res.data);
       } catch (err) {
         console.error("Failed to fetch listings", err);
@@ -25,7 +25,7 @@ const Home = () => {
     const fetchBookmarks = async () => {
       if (!token) return;
       try {
-        const res = await axios.get("http://localhost:5000/api/listings/bookmarks/my", {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/listings/bookmarks/my`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBookmarkedListings(res.data.map((item) => item._id));
@@ -41,7 +41,7 @@ const Home = () => {
   const handleBookmarkToggle = async (listingId) => {
     try {
       const res = await axios.patch(
-        `http://localhost:5000/api/listings/${listingId}/bookmark`,
+        `${process.env.REACT_APP_API_URL}/api/listings/${listingId}/bookmark`,
         {},
         {
           headers: {
@@ -69,7 +69,6 @@ const Home = () => {
 
   return (
     <Container className="py-5" style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
-      {/* Hero Section */}
       <div className="text-center mb-5">
         <h1 style={{ fontWeight: "700", color: "#000", fontSize: "3rem", letterSpacing: "1px" }}>
           🎓 Welcome to ScholarCamp
@@ -77,40 +76,38 @@ const Home = () => {
         <p style={{ color: "#444", fontSize: "1.15rem", marginTop: "0.5rem" }}>
           Upload, Explore, and Download Notes for Free. Join a community of learners and sharers.
         </p>
-       <div className="d-flex justify-content-center gap-3 mt-4">
-  <Button
-    variant="dark"
-    size="md"
-    onClick={() => navigate("/upload")}
-    style={{
-      width: "140px",
-      fontWeight: "600",
-      padding: "0.4rem 0",
-      fontSize: "1rem",
-      borderRadius: "6px",
-    }}
-  >
-    Upload Notes
-  </Button>
-  <Button
-    variant="outline-dark"
-    size="md"
-    onClick={() => navigate("/community-forum")}
-    style={{
-      width: "140px",
-      fontWeight: "600",
-      padding: "0.4rem 0",
-      fontSize: "1rem",
-      borderRadius: "6px",
-    }}
-  >
-    Join Forum
-  </Button>
-</div>
-
+        <div className="d-flex justify-content-center gap-3 mt-4">
+          <Button
+            variant="dark"
+            size="md"
+            onClick={() => navigate("/upload")}
+            style={{
+              width: "140px",
+              fontWeight: "600",
+              padding: "0.4rem 0",
+              fontSize: "1rem",
+              borderRadius: "6px",
+            }}
+          >
+            Upload Notes
+          </Button>
+          <Button
+            variant="outline-dark"
+            size="md"
+            onClick={() => navigate("/community-forum")}
+            style={{
+              width: "140px",
+              fontWeight: "600",
+              padding: "0.4rem 0",
+              fontSize: "1rem",
+              borderRadius: "6px",
+            }}
+          >
+            Join Forum
+          </Button>
+        </div>
       </div>
 
-      {/* Search Bar */}
       <Form className="mb-5">
         <Form.Control
           type="text"
@@ -126,7 +123,6 @@ const Home = () => {
         />
       </Form>
 
-      {/* Listings */}
       <Row xs={1} sm={2} md={3} lg={4} className="g-4">
         {filteredListings.length === 0 ? (
           <p className="text-center" style={{ color: "#666" }}>

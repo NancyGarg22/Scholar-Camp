@@ -30,7 +30,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       await axios.put(
-        "http://localhost:5000/api/users/profile/update",
+        `${process.env.REACT_APP_API_URL}/api/users/profile/update`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -46,8 +46,9 @@ const Profile = () => {
   const handleSocialSave = async () => {
     setSavingSocials(true);
     try {
-      await axios.put(
-        "http://localhost:5000/api/users/update-socials",
+     await axios.put(
+  `${process.env.REACT_APP_API_URL}/api/users/update-socials`,
+
         {
           linkedin: formData.linkedin,
           instagram: formData.instagram,
@@ -68,7 +69,8 @@ const Profile = () => {
   const togglePublic = async () => {
     try {
       const res = await axios.put(
-        "http://localhost:5000/api/users/profile/toggle-public",
+  `${process.env.REACT_APP_API_URL}/api/users/profile/toggle-public`,
+
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -83,8 +85,9 @@ const Profile = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/users/profile/stats",
+      const res = await axios.get(
+  `${process.env.REACT_APP_API_URL}/api/users/profile/stats`,
+
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -102,7 +105,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/auth/me", {
+ const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/me`, {
+
           headers: { Authorization: `Bearer ${token}` },
         });
         setFormData((prev) => ({

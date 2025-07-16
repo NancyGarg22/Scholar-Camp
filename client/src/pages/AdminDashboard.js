@@ -1,5 +1,3 @@
-// Paste this full code into your AdminDashboard.js
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Container, Table, Spinner, Button } from "react-bootstrap";
@@ -38,13 +36,13 @@ const AdminDashboard = () => {
     const fetchAdminData = async () => {
       try {
         const [usersRes, listingsRes, uploadsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/users/all", {
+          axios.get(`${process.env.REACT_APP_API_URL}/api/users/all`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:5000/api/listings/admin/all", {
+          axios.get(`${process.env.REACT_APP_API_URL}/api/listings/admin/all`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:5000/api/listings/stats/monthly-uploads", {
+          axios.get(`${process.env.REACT_APP_API_URL}/api/listings/stats/monthly-uploads`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -64,7 +62,7 @@ const AdminDashboard = () => {
   const handleDeleteListing = async (id) => {
     if (!window.confirm("Delete this listing?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/listing/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/listing/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setListings((prev) => prev.filter((l) => l._id !== id));
@@ -84,7 +82,7 @@ const AdminDashboard = () => {
     if (!window.confirm("Are you sure you want to delete selected listings?")) return;
     try {
       await axios.post(
-        "http://localhost:5000/api/listings/bulk-delete",
+        `${process.env.REACT_APP_API_URL}/api/listings/bulk-delete`,
         { ids: selectedListings },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -264,32 +262,31 @@ const AdminDashboard = () => {
       </div>
 
       <h5 className="mt-5">📚 Listings</h5>
-<Button
-  variant="outline-primary"
-  size="sm"
-  className="me-2 mb-2"
-  onClick={exportListingsToCSV}
->
-  ⬇️ Export Listings to CSV
-</Button>
-<Button
-  variant="outline-success"
-  size="sm"
-  className="me-2 mb-2"  // <-- added me-2 here
-  onClick={exportListingsToExcel}
->
-  📊 Export Listings to Excel
-</Button>
-<Button
-  variant="danger"
-  size="sm"
-  className="mb-2"
-  onClick={handleBulkDeleteListings}
-  disabled={selectedListings.length === 0}
->
-  🗑️ Delete Selected Listings
-</Button>
-
+      <Button
+        variant="outline-primary"
+        size="sm"
+        className="me-2 mb-2"
+        onClick={exportListingsToCSV}
+      >
+        ⬇️ Export Listings to CSV
+      </Button>
+      <Button
+        variant="outline-success"
+        size="sm"
+        className="me-2 mb-2"
+        onClick={exportListingsToExcel}
+      >
+        📊 Export Listings to Excel
+      </Button>
+      <Button
+        variant="danger"
+        size="sm"
+        className="mb-2"
+        onClick={handleBulkDeleteListings}
+        disabled={selectedListings.length === 0}
+      >
+        🗑️ Delete Selected Listings
+      </Button>
 
       <input
         type="text"
@@ -325,7 +322,10 @@ const AdminDashboard = () => {
               <td>{getOwnerName(l.owner)}</td>
               <td>{l.downloadCount || 0}</td>
               <td>
-                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteListing(l._id)}>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => handleDeleteListing(l._id)}
+                >
                   Delete
                 </button>
               </td>

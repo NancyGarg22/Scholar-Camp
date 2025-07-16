@@ -14,7 +14,8 @@ const ListingDetails = () => {
   useEffect(() => {
     const fetchListing = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/listings/${id}`);
+const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/listings/${id}`);
+
         setListing(res.data);
       } catch (err) {
         console.error("❌ Fetch listing error:", err);
@@ -35,7 +36,7 @@ const ListingDetails = () => {
   const handleBookmark = async () => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/listings/${listing._id}/bookmark`,
+        `${process.env.REACT_APP_API_URL}/api/listings/${listing._id}/bookmark`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
